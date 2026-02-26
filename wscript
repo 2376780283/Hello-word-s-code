@@ -1,29 +1,29 @@
+import os
 from waflib import TaskGen
 
 def options(opt):
-    pass
+    opt.add_option('--prefix', dest='prefix', default=os.getcwd() + '/dist', help='installation prefix')
 
 def configure(conf):
-    # 在 Termux 环境下，直接指定 clang
     conf.env.AS = 'clang'
-    conf.env.LD = 'clang'
-    conf.msg('Checking for Gayness level', 'EXTREME')
+    conf.env.STRIP = 'strip'
+    conf.env.PREFIX = conf.options.prefix
+    conf.msg('Ready for deployment', 'YES (ABSOLUTELY)')
 
 def build(bld):
-    # 核心：手动创建一个任务，告诉 Waf 如何处理 .s 文件
-    bld(
-        rule   = '${AS} -nostdlib -static ${SRC} -o ${TGT}',
-        source = 'main.s',
-        target = 'main',
-        shell  = True
+    target_app = bld(
+        rule    = '${AS} -nostdlib -static ${SRC} -o ${TGT}',
+        source  = 'main.s',
+        target  = 'bin_amnsnnnnnnnnnnnnnaaagay',
+        install_path = '${PREFIX}/bin'
     )
 
-# 强制映射后缀（这就是解决你那个报错的关键）
+    if bld.cmd == 'build':
+        bld.add_post_fun(lambda bld: os.system(f"{bld.env.STRIP} build/abstract_beast"))
+
 TaskGen.declare_chain(
     name    = 'assemble',
     rule    = '${AS} -c ${SRC} -o ${TGT}',
-    shell   = True,
     ext_in  = '.s',
-    ext_out = '.o',
-    reentrant = False
+    ext_out = '.o'
 )
